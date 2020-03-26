@@ -57,18 +57,15 @@ public class PositionalCraft implements ModInitializer {
 				return;
 			}
 
-			System.out.println(player.getEntityName() + ": " + player.lastRenderX + " " + player.lastRenderY + " " + player.lastRenderZ);
 			link.updateIdentity(player.getEntityName());
 			link.updateAvatar(player.lastRenderX, player.lastRenderY, -player.lastRenderZ);
 			Vec3d rot = player.getRotationVec(1.0F);
-			System.out.println("facing: " + rot.x + " " + rot.y + " " + rot.z + " dimen: " + playerDimen);
 			link.updateAvatarFront(rot.x, rot.y, -rot.z);
 
 			if (camera == null) {
 				camera = client.gameRenderer.getCamera();
 			}
 			Vec3d camPos = camera.getPos();
-			System.out.println("camera: " + camPos.x + " " + camPos.y + " " + camPos.z);
 			link.updateCamera(camPos.x, camPos.y, -camPos.z);
 			float f = camera.getPitch() * 0.017453292F;
 			float g = -camera.getYaw() * 0.017453292F;
@@ -76,7 +73,6 @@ public class PositionalCraft implements ModInitializer {
 			float i = MathHelper.sin(g);
 			float j = MathHelper.cos(f);
 			float k = MathHelper.sin(f);
-			System.out.println("cam facing: " + (double)(i * j) + " " + (double)(-k) + " " + (double)(h * j));
 			link.updateCameraFront((double)(i * j), (double)(-k), -(double)(h * j));
 
 			ServerInfo server = client.getCurrentServerEntry();
