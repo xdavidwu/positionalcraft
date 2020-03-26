@@ -1,6 +1,7 @@
 plugins {
 	id 'fabric-loom' version '0.2.6-SNAPSHOT'
 	id 'maven-publish'
+	id 'c'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -8,7 +9,49 @@ targetCompatibility = JavaVersion.VERSION_1_8
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
-group = project.maven_group
+
+model {
+	components {
+		link(NativeLibrarySpec) {
+			binaries.all {
+				// todo clang?
+				// gradle uses nostdinc on all except os x
+				if (targetPlatform.operatingSystem.macOsX) {
+					cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
+					cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include/darwin"
+				} else if (targetPlatform.operatingSystem.linux) {
+					// guess toolchain header path with prefix /usr/lib/gcc
+					def machine = new ByteArrayOutputStream()
+					exec {
+						commandLine "gcc", "-dumpmachine"
+						standardOutput = machine
+					}
+					def version = new ByteArrayOutputStream()
+					exec {
+						commandLine "gcc", "-dumpversion"
+						standardOutput = version
+					}
+					def machineTrimmed = machine.toString().trim()
+					def versionTrimmed = version.toString().trim()
+					cCompiler.args '-I', "/usr/lib/gcc/$machineTrimmed/$versionTrimmed/include"
+					cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
+					cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include/linux"
+					cCompiler.args '-I', "/usr/include"
+					cCompiler.args '-I', "/usr/include/linux"
+					linker.args '-lrt'
+				} else if (targetPlatform.operatingSystem.windows) {
+					cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
+					cCompiler.args "-I${org.gradle.internal.jvm.Jvm.current().javaHome}/include/win32"
+					// todo stdinc
+				} else if (targetPlatform.operatingSystem.freeBSD) {
+					cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
+					cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include/freebsd"
+					// todo stdinc
+				}
+			}
+		}
+	}
+}
 
 dependencies {
 	//to change the versions see the gradle.properties file
@@ -53,6 +96,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 jar {
 	from "LICENSE"
+	from "build/libs/link/shared/liblink.so"
 }
 
 // configure the maven publication
