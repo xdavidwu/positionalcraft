@@ -126,13 +126,14 @@ JNIEXPORT void JNICALL Java_org_positionalcraft_jni_Link_updateCameraFront(JNIEn
 JNIEXPORT void JNICALL Java_org_positionalcraft_jni_Link_updateContext(JNIEnv *env, jobject obj, jstring ctx) {
 	maintain_link();
 	const char *str = (*env)->GetStringUTFChars(env, ctx, NULL);
-	strncpy(lm->context, str, 256);
+	strncpy(lm->context, str, 255);
+	lm->context_len = strlen(lm->context);
 	(*env)->ReleaseStringUTFChars(env, ctx, str);
 }
 
 JNIEXPORT void JNICALL Java_org_positionalcraft_jni_Link_updateIdentity(JNIEnv *env, jobject obj, jstring id) {
 	maintain_link();
 	const char *str = (*env)->GetStringUTFChars(env, id, NULL);
-	mbstowcs(lm->identity, str, 256);
+	mbstowcs(lm->identity, str, 255);
 	(*env)->ReleaseStringUTFChars(env, id, str);
 }
