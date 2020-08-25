@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
+import java.security.MessageDigest;
+import java.util.Base64;
 
 import org.positionalcraft.jni.Link;
 
@@ -22,6 +24,7 @@ public class PositionalCraft implements ModInitializer {
 	private Link link = null;
 	private MinecraftClient client = null;
 	private Camera camera = null;
+	private MessageDigest digest = null;
 
 	@Override
 	public void onInitialize() {
@@ -41,6 +44,7 @@ public class PositionalCraft implements ModInitializer {
 			System.load(tmp.getAbsolutePath());
 			link = new Link();
 			client = MinecraftClient.getInstance();
+			digest = MessageDigest.getInstance("SHA-256");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
@@ -73,13 +77,16 @@ public class PositionalCraft implements ModInitializer {
 			link.updateCameraFront((double)(i * j), (double)(-k), -(double)(h * j));
 
 			ServerInfo server = client.getCurrentServerEntry();
-			if (server != null) {
-				// for multiplayer, label should be server description,
-				// which should be always the same for the same instance
-				link.updateContext(server.label + playerDimen);
-			} else {
-				link.updateContext("todo" + playerDimen);
+			digest.reset();
+			// for multiplayer, label should be server description,
+			// which should be always the same for the same instance
+			String rawctx = (server != null) ? server.label + playerDimen : playerDimen;
+			try {
+				digest.update(rawctx.getBytes("utf8"));
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
+			link.updateContext(Base64.getEncoder().encodeToString(digest.digest()));
 			link.updateTick();
 		});
 	}
