@@ -52,10 +52,7 @@ public class PositionalCraft implements ModInitializer {
 				return;
 			}
 
-			int playerDimen = player.dimension.getRawId();
-			if (playerDimen != world.dimension.getType().getRawId()) {
-				return;
-			}
+			String playerDimen = player.world.getRegistryKey().getValue().toString();
 
 			link.updateIdentity(player.getEntityName());
 			link.updateAvatar(player.lastRenderX, player.lastRenderY, -player.lastRenderZ);
